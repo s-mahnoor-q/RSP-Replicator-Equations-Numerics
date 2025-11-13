@@ -10,12 +10,8 @@ function dU = replicatorEq_x1y1(t, U, p)
         -1-ey, 0, 1-ey;
         1-ey, -1-ey, 0];
 
-    %u is [x2;x3;y1;y3]
-    X = [1-(U(1,:)+U(2,:));     U(1,:);    U(2,:)];
-    Y = [U(3,:);     1-(U(3,:)+U(4,:));    U(4,:)];
-
-    x = exp(X);
-    y = exp(Y);
+    x = [1-(exp(U(1,:))+exp(U(2,:))); exp(U(1,:)); exp(U(2,:))];
+    y = [1-(exp(U(3,:))+exp(U(4,:))); exp(U(3,:)); exp(U(4,:))];
 
     Ay = A * y;
     Bx = B * x;
@@ -23,5 +19,5 @@ function dU = replicatorEq_x1y1(t, U, p)
     dX = (Ay - x' * Ay);
     dY = (Bx - y' * Bx);
 
-    dU = [dX(2);dX(3);dY(1);dY(3)];
+    dU = [dX(2);dX(3);dY(2);dY(3)];
 end

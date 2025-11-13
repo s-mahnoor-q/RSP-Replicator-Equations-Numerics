@@ -20,11 +20,9 @@ function [a] = simulateRSP(simulationTime, u0, p)
     
     tCurrent = 0; TSTART=tic; figure; hold on;
     switches=0
-    % while tCurrent<simulationTime
-    while switches < 3
+    while tCurrent<simulationTime
         options = odeset('Events', @(t,U_integrated) switchEventFcn(t,U_integrated,currentEquilibrium), 'MaxStep',5e-3,'AbsTol',1e-10,'RelTol',1e-8); %we need to reupdate the currentEquilibrium for the event function 
-        pee=U_FULL
-        poo=getIC(U_FULL,currentEquilibrium)
+        currentEquilibrium
         [t, U_integrated, te, U_integrated_event, ie] = ode45(@(t,y) localEquations(t,y,p), [tCurrent simulationTime], getIC(U_FULL,currentEquilibrium)', options);
         %depending on the current equilibrium, use the appropriate
         %constraint to find x_i, y_j
@@ -49,7 +47,7 @@ function [a] = simulateRSP(simulationTime, u0, p)
             fprintf(outputTxtID, 'ye was empty, skipped t=%f\n', t(end))
         else
             U_e = deriveVariablesFromConstraint(U_integrated_event, currentEquilibrium);
-            nextEquilibrium = toEquilibrium(currentEquilibrium, U_e(end,:))
+            nextEquilibrium = toEquilibrium(currentEquilibrium, U_e(end,:));
         end
 
         localEquations = getEquationHandle(nextEquilibrium);
@@ -57,6 +55,9 @@ function [a] = simulateRSP(simulationTime, u0, p)
         switches = switches + 1;
 
     end
+    legend('$X_1$', '$X_2$', '$X_3$', '$Y_1$', '$Y_2$', '$Y_3$', 'Location', 'southwest', 'Interpreter', 'latex')
+    xlabel('$t$', 'Interpreter', 'latex')
+    ylabel('$X_i,Y_j$', 'Interpreter', 'latex')
 
     fclose(outputTxtID);
 end

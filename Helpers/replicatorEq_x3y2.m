@@ -10,12 +10,8 @@ function dU = replicatorEq_x3y2(t, U, p)
         -1-ey, 0, 1-ey;
         1-ey, -1-ey, 0];
 
-    % u is [x1;x2;y1;y3]
-    X = [U(1,:); U(2,:); 1-(U(1,:)+U(2,:))];
-    Y = [U(3,:); 1-(U(3,:)+U(4,:)); U(4,:)];
-
-    x = exp(X);
-    y = exp(Y);
+    x = [exp(U(1,:)); exp(U(2,:)); 1-(exp(U(1,:))+exp(U(2,:)))];
+    y = [exp(U(3,:));     1-(exp(U(3,:))+exp(U(4,:)));    exp(U(4,:))];
 
     Ay = A * y;
     Bx = B * x;
