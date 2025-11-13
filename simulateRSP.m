@@ -1,0 +1,63 @@
+function [a] = simulateRSP(simulationTime, u0, p)
+% Integrates the RSP replicator equations in with parameters ex, ey
+% by switching equations depending on which equilibrium is nearest
+% Generates a folder with a .fig, and .txt file with relative equilibria
+% visited sequence
+    addpath(genpath(fullfile(fileparts(mfilename('fullpath')), 'Helpers')));
+    a=0;
+    if ~initialConditionIsValid(u0)
+        return
+    end
+    U_FULL=log(u0);
+
+    currentEquilibrium = findClosestEquilibrium(u0);    %note: current equilibrium is always a 1x1 cell array, e.g. {[1 6]}
+    equilibriumSequence=[];
+    localEquations = getEquationHandle(currentEquilibrium);
+
+    % set up output files. outputTxtID will contain relative equilibria info
+    outputTxtID = setupOutputTxt(p,u0);
+    figurename = generateFigFilename(p, u0);
+    
+    tCurrent = 0; TSTART=tic; figure; hold on;
+    switches=0
+    % while tCurrent<simulationTime
+    while switches < 3
+        options = odeset('Events', @(t,U_integrated) switchEventFcn(t,U_integrated,currentEquilibrium), 'MaxStep',5e-3,'AbsTol',1e-10,'RelTol',1e-8); %we need to reupdate the currentEquilibrium for the event function 
+        pee=U_FULL
+        poo=getIC(U_FULL,currentEquilibrium)
+        [t, U_integrated, te, U_integrated_event, ie] = ode45(@(t,y) localEquations(t,y,p), [tCurrent simulationTime], getIC(U_FULL,currentEquilibrium)', options);
+        %depending on the current equilibrium, use the appropriate
+        %constraint to find x_i, y_j
+        % fprintf(size(U_integrated))
+        U = deriveVariablesFromConstraint(U_integrated, currentEquilibrium);
+        fprintf(outputTxtID, 't->%.2f:\t%s\n', t(end), toRelativeEquilibrium(localEquations));
+        equilibriumSequence(end+1) = toRelativeEquilibrium(localEquations);
+        % size(t)
+        % size(U)
+        plotRSPLogCoordinates(t, U);
+    
+        try 
+            % if there was no crossover, the following line will poop itself
+            U_FULL = deriveVariablesFromConstraint(U_integrated_event(end,:), currentEquilibrium);
+        catch ME
+            U_FULL = U(end,:);
+        end
+        tCurrent = t(end);
+            
+        if isempty(U_integrated_event)
+            nextEquilibrium = currentEquilibrium;
+            fprintf(outputTxtID, 'ye was empty, skipped t=%f\n', t(end))
+        else
+            U_e = deriveVariablesFromConstraint(U_integrated_event, currentEquilibrium);
+            nextEquilibrium = toEquilibrium(currentEquilibrium, U_e(end,:))
+        end
+
+        localEquations = getEquationHandle(nextEquilibrium);
+        currentEquilibrium = nextEquilibrium;
+        switches = switches + 1;
+
+    end
+
+    fclose(outputTxtID);
+end
+

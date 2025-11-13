@@ -1,0 +1,65 @@
+function [a] = simulateRSP(simulationTime, u0, p)
+% Integrates the RSP replicator equations in with parameters ex, ey
+% by switching equations depending on which equilibrium is nearest
+% Generates a folder with a .fig, and .txt file with relative equilibria
+% visited sequence
+    addpath(genpath(fullfile(fileparts(mfilename('fullpath')), 'Helpers')));
+    a=0;
+    if ~initialConditionIsValid(u0)
+        return
+    end
+    U0=log(u0);
+
+    currentEquilibrium = findClosestEquilibrium(u0);    %note: current equilibrium is always a 1x1 cell array, e.g. {[1 6]}
+    equilibriumSequence=[];
+    localEquations = getEquationHandle(currentEquilibrium);
+
+    % set up output files. outputTxtID will contain relative equilibria info
+    outputTxtID = setupOutputTxt(p,u0)
+    figurename = generateFigFilename(p, u0)
+    
+    tCurrent = 0; TSTART=tic;
+    while tCurrent<simulation_time
+        options = odeset('Events', @(t,y) switchEventFcn(t,y,currentEquilibrium{1}), 'MaxStep',5e-3,'AbsTol',1e-10,'RelTol',1e-8); %we need to reupdate the currentEquilibrium for the event function 
+        [t, U, te, ue, ie] = ode45(@(t,y) localEquations(t,y,param), [tCurrent simulation_time], U0, options);
+        %depending on the current equilibrium, use the appropriate
+        %constraint to find x_i, y_j
+        fprintf(fileID, 't->%.2f:\t%s\n', t(end), toRelativeEquilibrium(localEquations));
+        equilibriumSequence(end+1) = toRelativeEquilibrium(localEquations);
+        plot_log_coords_w_constraint(t, U, currentEquilibrium{1});
+    
+        try 
+            % if there was no crossover, the following line will poop itself
+            Y0 = ye(end,:)';
+        catch ME
+            Y0 = y(end,:)';
+        end
+        tCurrent = t(end);
+    
+        % if no event was detected, ye will be empty
+        if abs(tCurrent-simulation_time)<1e-5
+            fprintf(fileID, 'End of simulation reached, breaking loop.\n')
+            break
+        end
+            
+        if isempty(ye)
+            next_equilibrium = currentEq;
+            fprintf(fileID, 'ye was empty, skipped t=%f\n', t(end))
+        else
+            % fprintf(fileID, 'finding next eq at t=%f\n', t(end))
+            next_equilibrium = to_equilibrium(currentEq, ye(end,:));
+        end
+    
+        % write function to find which equilibrium we are headed towards, hence
+        % which set equations to use next!
+        eqCell = equations(next_equilibrium); 
+        currentEq = next_equilibrium;
+        localEquations = eqCell{:};
+    end
+
+    figure; hold on;
+    relativeEquilibriaVisited = [];
+
+    fclose(outputTxtID);
+end
+

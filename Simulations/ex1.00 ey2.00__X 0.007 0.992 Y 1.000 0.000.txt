@@ -1,0 +1,3 @@
+PARAMETERS*** eps_x: 1.00, eps_y: 2.00
+INITIAL CONDITIONS: [0.007 0.992 0.001] [1.000 0.000 0.000]
+=========START==========
