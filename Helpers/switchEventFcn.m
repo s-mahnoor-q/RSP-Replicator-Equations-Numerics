@@ -1,6 +1,6 @@
 function [position,isterminal,direction] = switchEventFcn(t,U_integrated,currentEquilibrium)
     % size_U_int = size(U_integrated)
-    U = deriveVariablesFromConstraint(U_integrated', currentEquilibrium);
+    U = deriveLogVariablesFromConstraint(U_integrated', currentEquilibrium);
     x_ = [U(:,1:3)];
     y_ = [U(:,4:6)];
     
