@@ -10,7 +10,7 @@
 % simplex).
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function next_equilibrium = toEquilibrium(currentEquilibrium, ye)
+function next_equilibrium = toEquilibrium(currentEquilibrium, ye, te)
     keys = { [1 4], [1 5], [1 6], ...
          [2 4], [2 5], [2 6], ...
          [3 4], [3 5], [3 6] };
@@ -43,8 +43,7 @@ function next_equilibrium = toEquilibrium(currentEquilibrium, ye)
     %     fprintf('[%d %d]\n', v{1}, v{2});
     % end
     duplicate_indices = [];
-    % disp(ye)
-    ye
+
     for i = 1:n-1
         for j = i+1:n
             % fprintf('i: %d, j: %d, diff: %f\n',i,j,abs(ye(i) - ye(j)))
@@ -75,8 +74,8 @@ function next_equilibrium = toEquilibrium(currentEquilibrium, ye)
     elseif ismember(increasingVar, v2)
         next_equilibrium = v2;
     else % BE CAREFUL POOPY
-        warning('increasing var does not match heteroclinic network')
-        next_equilibrium = v1;
+        warning('increasing var does not match heteroclinic network at t=%.5f. Returning current set of equations', te)
+        next_equilibrium = currentEquilibrium;
     end
 
     % fprintf('Current eq: ')

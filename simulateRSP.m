@@ -1,4 +1,4 @@
-function [tSimulated, trajectory] = simulateRSP(simulationTime, u0, p)
+function [tSimulated, trajectory] = simulateRSP(simulationTime, u0, p);
 % Integrates the RSP replicator equations in with parameters ex, ey
 % by switching equations depending on which equilibrium is nearest
 % Generates a folder with a .fig, and .txt file with relative equilibria
@@ -23,17 +23,15 @@ function [tSimulated, trajectory] = simulateRSP(simulationTime, u0, p)
     switches=0;
     while tCurrent<simulationTime
         options = odeset('Events', @(t,U_integrated) switchEventFcn(t,U_integrated,currentEquilibrium), 'MaxStep',5e-3,'AbsTol',1e-10,'RelTol',1e-8); %we need to reupdate the currentEquilibrium for the event function 
-        currentEquilibrium;
-        [t, U_integrated, te, U_integrated_event, ie] = ode45(@(t,y) localEquations(t,y,p), [tCurrent simulationTime], getIC(U_FULL,currentEquilibrium)', options);
+
+        [t, U_integrated, te, U_integrated_event, ~] = ode45(@(t,y) localEquations(t,y,p), [tCurrent simulationTime], getIC(U_FULL,currentEquilibrium)', options);
         %depending on the current equilibrium, use the appropriate
         %constraint to find x_i, y_j
-        % fprintf(size(U_integrated))
         U = deriveLogVariablesFromConstraint(U_integrated, currentEquilibrium);
         trajectory = [trajectory; U]; tSimulated=[tSimulated;t];
         fprintf(outputTxtID, 't->%.2f:\t%s\n', t(end), toRelativeEquilibrium(localEquations));
         equilibriumSequence(end+1) = toRelativeEquilibrium(localEquations);
-        % size(t)
-        % size(U)
+
         plotRSPLogCoordinates(t, U);
     
         try 
@@ -46,21 +44,23 @@ function [tSimulated, trajectory] = simulateRSP(simulationTime, u0, p)
             
         if isempty(U_integrated_event)
             nextEquilibrium = currentEquilibrium;
-            fprintf(outputTxtID, 'ye was empty, skipped t=%f\n', t(end))
+            fprintf(outputTxtID, 'ye was empty, skipped t=%f\n', t(end));
         else
             U_e = deriveLogVariablesFromConstraint(U_integrated_event, currentEquilibrium);
-            nextEquilibrium = toEquilibrium(currentEquilibrium, U_e(end,:));
+            nextEquilibrium = toEquilibrium(currentEquilibrium, U_e(end,:), te(end));
         end
 
         localEquations = getEquationHandle(nextEquilibrium);
         currentEquilibrium = nextEquilibrium;
         switches = switches + 1;
-
     end
-    legend('$X_1$', '$X_2$', '$X_3$', '$Y_1$', '$Y_2$', '$Y_3$', 'Location', 'southwest', 'Interpreter', 'latex')
-    xlabel('$t$', 'Interpreter', 'latex')
-    ylabel('$X_i,Y_j$', 'Interpreter', 'latex')
-
+    TELAPSED = toc(TSTART);
+    legend('$X_1$', '$X_2$', '$X_3$', '$Y_1$', '$Y_2$', '$Y_3$', 'Location', 'southwest', 'Interpreter', 'latex');
+    xlabel('$t$', 'Interpreter', 'latex');
+    ylabel('$X_i,Y_j$', 'Interpreter', 'latex');
+    fprintf(outputTxtID, 'Simulation time: %d seconds', TELAPSED);
+    fprintf(outputTxtID, '\nFull sequence of equilibria visited:\n');
+    fprintf(outputTxtID, '%d', equilibriumSequence);
     fclose(outputTxtID);
 end
 
