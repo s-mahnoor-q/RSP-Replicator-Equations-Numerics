@@ -106,7 +106,7 @@ savefig('Figures/switchingCoordsConstraint_t20.fig')
 saveas(gcf, 'Figures/switchingCoordsConstraint_t20.png')
 
 %% Method 4b: 4eq, log eq with switching constraint for longer time
-
+simulationTime=1000
 [t, U] = simulateRSP(simulationTime, [x y], p)
 close all
 figure('Position', [0 0 900 300]);

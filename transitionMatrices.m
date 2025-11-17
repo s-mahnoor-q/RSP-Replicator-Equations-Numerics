@@ -52,4 +52,4 @@ resultC2 = PodviginasMatrix(A_C2_0, 100, false, [159, 248, 127]/256);
 P1 = [0 1 0; 1 0 0; 0 0 1];
 P2 = [1 0 0; 0 0 1; 0 1 0];
 A_0 = @(ex,ey) P1*M_1to0(ex,ey)*P2*M_2to1(ex,ey)*M_1to2(ex,ey)*P2*M_0to1(ex,ey);
-PodviginasMatrix(A_0, 100, true, [0.7 0.2 0.9])
+PodviginasMatrix(A_0, 1000, true, [0.7 0.2 0.9])
