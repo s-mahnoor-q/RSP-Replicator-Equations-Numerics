@@ -58,6 +58,10 @@ function [tSimulated, trajectory] = simulateRSP(simulationTime, u0, p);
     legend('$X_1$', '$X_2$', '$X_3$', '$Y_1$', '$Y_2$', '$Y_3$', 'Location', 'southwest', 'Interpreter', 'latex');
     xlabel('$t$', 'Interpreter', 'latex');
     ylabel('$X_i,Y_j$', 'Interpreter', 'latex');
+    title(sprintf('$\\varepsilon_x = %.3f, \\varepsilon_y = %.3f$, \nIC: $(X_1, X_2, X_3, Y_1, Y_2, Y_3) = (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)$', ...
+    p(1), p(2), U_FULL(1), U_FULL(2), U_FULL(3), U_FULL(4), U_FULL(5), U_FULL(6)), ...
+    'Interpreter','latex');
+
     fprintf(outputTxtID, 'Simulation time: %d seconds', TELAPSED);
     fprintf(outputTxtID, '\nFull sequence of equilibria visited:\n');
     fprintf(outputTxtID, '%d', equilibriumSequence);
